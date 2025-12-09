@@ -6,17 +6,17 @@ The datasets is stored in [Dataset](line-level-defect-prediction/Dataset). They 
 
 ### Environment Setup
 Make sure R is upgraded to version 4.* or above, and CMake is upgraded to 3.15+.
-#### Python Environment Setup
-clone the github repository by using the following command:
-'''
- git clone https://github.com/awsm-research/DeepLineDP.git
-'''
 
-use the following command to install required libraries in conda environment
-'''
- conda env create -f requirements.yml
- conda activate DeepLineDP_env
-'''
+#### Python Environment Setup
+Clone the GitHub repository:
+```
+git clone https://github.com/awsm-research/DeepLineDP.git
+```
+Install required libraries with conda:
+```
+conda env create -f requirements.yml
+conda activate DeepLineDP_env
+```
 install PyTorch library by following the instruction from this link (the installation instruction may vary based on OS and CUDA version)
 
 #### R Environment Setup
