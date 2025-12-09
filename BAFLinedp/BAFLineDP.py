@@ -12,8 +12,7 @@ class BAFLineDP(nn.Module):
         
         self.use_static_features = use_static_features
         self.static_feature_dim = static_feature_dim
-        
-        # 如果使用静态特征，调整输入维度
+
         actual_embed_dim = embed_dim + static_feature_dim if use_static_features else embed_dim
 
         # define Bi-GRU module
@@ -37,17 +36,12 @@ class BAFLineDP(nn.Module):
         sent_lengths = [len(code) for code in code_tensor]
         sent_lengths = torch.tensor(sent_lengths).to(self.device)
 
-        # 填充代码向量
         code_tensor = pad_sequence(code_tensor, batch_first=True)
         
-        # 如果使用静态特征，进行特征融合
         if self.use_static_features and static_features is not None:
-            # 填充静态特征
             static_features = pad_sequence(static_features, batch_first=True)
-            # 确保静态特征和代码特征的序列长度一致
             if static_features.size(1) != code_tensor.size(1):
                 max_len = max(static_features.size(1), code_tensor.size(1))
-                # 填充到相同长度
                 if static_features.size(1) < max_len:
                     pad_size = max_len - static_features.size(1)
                     padding = torch.zeros(static_features.size(0), pad_size, static_features.size(2), 
@@ -59,7 +53,6 @@ class BAFLineDP(nn.Module):
                                         device=code_tensor.device)
                     code_tensor = torch.cat([code_tensor, padding], dim=1)
             
-            # 拼接代码特征和静态特征
             code_tensor = torch.cat([code_tensor, static_features], dim=2)
 
         sent_lengths, sent_perm_idx = sent_lengths.sort(dim=0, descending=True)

@@ -57,21 +57,16 @@ def convert_examples_to_features(item, tokenizer, args):
 
 
 def load_and_process_static_features(static_features_df, dataset_name):
-    """加载并预处理静态特征，返回归一化后的特征和标准化器"""
     if static_features_df is None:
         return None, None
     
-    # 获取特征列（跳过前4列：filename, line_number, file_label, line_label）
     feature_cols = static_features_df.columns[4:].tolist()
     
-    # 提取所有特征数据进行标准化
     feature_data = static_features_df[feature_cols].values
     
-    # 使用MinMaxScaler进行标准化
     scaler = MinMaxScaler()
     normalized_features = scaler.fit_transform(feature_data)
     
-    # 更新DataFrame中的特征数据
     static_features_df = static_features_df.copy()
     static_features_df[feature_cols] = normalized_features
     
@@ -83,14 +78,11 @@ def load_and_process_static_features(static_features_df, dataset_name):
 
 
 def load_static_features_for_file(static_features_df, filename, code_lines, is_training=True):
-    """为指定文件加载静态特征，严格匹配每一行"""
     if static_features_df is None:
         return np.zeros((len(code_lines), 32), dtype=np.float32)
     
-    # 获取特征列名（跳过前4列）
     feature_cols = static_features_df.columns[4:].tolist()
     
-    # 尝试优化匹配过程：预先筛选该文件的所有行
     file_features = static_features_df[static_features_df['filename'] == filename]
     
     if len(file_features) == 0:
@@ -100,26 +92,20 @@ def load_static_features_for_file(static_features_df, filename, code_lines, is_t
     features = []
     unmatched_lines = []
     
-    # 为每一行代码查找对应的静态特征
     for line_idx in range(len(code_lines)):
-        # 在预筛选的数据中查找匹配行
         matching_rows = file_features[file_features['line_number'] == line_idx + 1]
         
         if len(matching_rows) > 0:
-            # 如果找到匹配行，提取特征
             static_feature = matching_rows[feature_cols].values[0].astype(np.float32)
             features.append(static_feature)
         else:
-            # 记录未匹配的行
             unmatched_lines.append(line_idx + 1)
-            # 用零向量填充
             static_feature = np.zeros(len(feature_cols), dtype=np.float32)
             features.append(static_feature)
     
-    # 如果有未匹配的行，只在前几个文件输出警告
     if unmatched_lines and is_training:
         mode = "training" if is_training else "prediction"
-        if len(unmatched_lines) > 10:  # 只有当未匹配行数较多时才输出警告
+        if len(unmatched_lines) > 10: 
             print(f"WARNING during {mode}: File '{filename}' has {len(unmatched_lines)} unmatched lines")
             print(f"  Total lines in file: {len(code_lines)}")
             print(f"  Using zero vectors for unmatched lines")
@@ -157,7 +143,6 @@ def get_loss_weight(labels, weight_dict):
 
 
 def get_code3d_and_label_with_static(df, static_features_df, to_lowercase=False, max_sent_length=None):
-    """获取代码和标签，同时加载对应的静态特征"""
     code3d = []
     all_file_label = []
     static_features_list = []
@@ -165,7 +150,7 @@ def get_code3d_and_label_with_static(df, static_features_df, to_lowercase=False,
     print(f"Processing {len(df.groupby('filename'))} files...")
     
     for i, (filename, group_df) in enumerate(df.groupby('filename')):
-        if i % 100 == 0:  # 每100个文件输出一次进度
+        if i % 100 == 0: 
             print(f"Processing file {i+1}/{len(df.groupby('filename'))}: {filename}")
         
         group_df = group_df[group_df['code_line'].ne('')]
@@ -174,11 +159,9 @@ def get_code3d_and_label_with_static(df, static_features_df, to_lowercase=False,
         
         if max_sent_length:
             code2d = prepare_code2d(code, to_lowercase)[:max_sent_length]
-            code = code[:max_sent_length]  # 同步截断原始代码行
-        else:
+            code = code[:max_sent_length]  
             code2d = prepare_code2d(code, to_lowercase)
         
-        # 加载静态特征
         if static_features_df is not None:
             static_features = load_static_features_for_file(static_features_df, filename, code, is_training=True)
             static_features_list.append(static_features)
@@ -207,10 +190,8 @@ def train_model(args, dataset_name):
     train_df = get_df(train_rel)
     valid_df = get_df(valid_rel)
 
-    # 加载静态特征数据
     static_features_df = None
     if args.use_static_features:
-        # 使用训练版本号构建静态特征文件路径
         train_version = all_train_releases[dataset_name]
         static_feature_path = f"{args.static_features_dir}{train_version}_ast_features.csv"
         if os.path.exists(static_feature_path):
@@ -222,13 +203,11 @@ def train_model(args, dataset_name):
             print(f"Expected file: {train_version}_ast_features.csv in {args.static_features_dir}")
             return
 
-    # 获取代码和静态特征
     print("Loading training data...")
     if args.use_static_features:
         train_code3d, train_label, train_static_features = get_code3d_and_label_with_static(
             train_df, static_features_df, True, args.max_train_LOC)
         
-        # 加载验证数据的静态特征
         print("Loading validation data...")
         valid_version = all_eval_releases[dataset_name][0]
         valid_static_feature_path = f"{args.static_features_dir}{valid_version}_ast_features.csv"
@@ -279,7 +258,6 @@ def train_model(args, dataset_name):
     else:
         codebert = model_class(config)
 
-    # 创建模型时传入静态特征相关参数
     model = BAFLineDP(
         embed_dim=args.embed_dim,
         gru_hidden_dim=args.gru_hidden_dim,
@@ -348,7 +326,6 @@ def train_model(args, dataset_name):
             weight_tensor = get_loss_weight(labels, weight_dict)
             criterion.weight = weight_tensor.to(args.device)
 
-            # 根据是否使用静态特征调用模型
             if args.use_static_features:
                 static_features_tensors = [sf.to(args.device) for sf in static_features]
                 output, _ = model(cov_inputs, static_features_tensors)
@@ -394,7 +371,6 @@ def train_model(args, dataset_name):
                         codebert(item.to(args.device), attention_mask=item.to(args.device).ne(1)).pooler_output
                     )
 
-                # 根据是否使用静态特征调用模型
                 if args.use_static_features:
                     static_features_tensors = [sf.to(args.device) for sf in static_features]
                     output, _ = model(cov_inputs, static_features_tensors)
@@ -453,7 +429,6 @@ def main():
     arg.add_argument('-loss_dir', type=str, default='output/loss/BAFLineDP/',
                      help='the loss directory of model')
 
-    # 新增静态特征相关参数
     arg.add_argument('-use_static_features', action='store_true', 
                      help='whether to use static features')
     arg.add_argument('-static_features_dir', type=str, 
@@ -461,8 +436,7 @@ def main():
                      help='directory containing static features CSV files')
     arg.add_argument('-static_feature_dim', type=int, default=32,
                      help='dimension of static features')
-    
-    # 新增单项目训练参数
+
     arg.add_argument('-single_project', type=str, default=None,
                      help='train on single project only (e.g., activemq)')
 
@@ -498,7 +472,6 @@ def main():
 
     set_seed(args.seed)
 
-    # 如果指定了单个项目，只训练该项目；否则训练所有项目
     if args.single_project:
         if args.single_project in all_releases:
             print(f"Training on single project: {args.single_project}")
