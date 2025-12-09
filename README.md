@@ -9,7 +9,7 @@ Make sure R is upgraded to version 4.* or above, and CMake is upgraded to 3.15+.
 #### Python Environment Setup
 clone the github repository by using the following command:
 '''
-git clone https://github.com/awsm-research/DeepLineDP.git
+ git clone https://github.com/awsm-research/DeepLineDP.git
 '''
 
 use the following command to install required libraries in conda environment
