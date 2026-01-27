@@ -2,7 +2,7 @@
 
 ## DeepLineDP
 ### Datasets
-The datasets is stored in [Dataset](line-level-defect-prediction/Dataset). They are obtained from Wattanakriengkrai et. al. The datasets contain 32 software releases across 9 software projects. The datasets that we used in our experiment can be found [here](https://github.com/awsm-research/line-level-defect-prediction.git). When reproducing the experiments for the eight models, please move or copy the data to the correct location as required by each model's structure.
+The datasets are stored in [Dataset](line-level-defect-prediction/Dataset). They are collected by Wattanakriengkrai et. al. The datasets contain 32 software releases across 9 software projects. The datasets that we used in our experiment can be found [here](https://github.com/awsm-research/line-level-defect-prediction.git). When reproducing the experiments for the eight models, please move or copy the data to the correct location as required by each model's structure.
 
 ### Environment Setup
 Make sure R is upgraded to version 4.* or above, and CMake is upgraded to 3.15+.
@@ -25,7 +25,7 @@ Download the following package: tidyverse, gridExtra, ModelMetrics, caret, resha
 ### Experiment
 #### Experimental Setup
 
-We use the following hyper-parameters to train our DeepLineDP model
+We use the following hyper-parameters to train DeepLineDP model
 
 - `batch_size` = 32
 - `num_epochs` = 10
@@ -39,13 +39,13 @@ We use the following hyper-parameters to train our DeepLineDP model
 
 #### Data Preprocessing
 
-1. run the command to prepare data for file-level model training. The output will be stored in `./datasets/preprocessed_data`
+1. Run the command to prepare data for file-level model training. The output will be stored in `./datasets/preprocessed_data`
     
     ```
      python preprocess_data.py
     ```
     
-2. run the command to prepare data for line-level baseline. The output will be stored in `./datasets/ErrorProne_data/` (for ErrorProne), and `./datasets/n_gram_data/` (for n-gram)
+2. Run the command to prepare data for line-level baseline. The output will be stored in `./datasets/ErrorProne_data/` (for ErrorProne), and `./datasets/n_gram_data/` (for n-gram)
     
     ```
      python export_data_for_line_level_baseline.py
@@ -109,7 +109,7 @@ python main.py
 
 #### **Data preparation**
 
-after you get the result of GLANCE and LineDP, you need create the following new folder:
+After you get the result of GLANCE and LineDP, you need create the following new folder:
 
 - `SPLICE/Baseline-result/GLANCE/result/BASE-Glance-EA/line_result/test/`
     
@@ -136,7 +136,7 @@ Run `RQ1_Compare.R`, `RQ2_Ablation.R`, `RQ3_Hit_and_Over.R` and `Dis-6.2-in
 Rscript  RQ1_Compare.R
 ```
 
-the result are figures that are sorted in `./RQ1_result`, `./RQ1_result`, `./RQ1_result`, `./Dis_result`
+The results are figures that are sorted in `./RQ1_result`, `./RQ1_result`, `./RQ1_result`, `./Dis_result`
 
 ##### Script Descriptions:
 
